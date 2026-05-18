@@ -5,7 +5,7 @@ import { ShoppingBag, Edit2, Trash2 } from 'lucide-react';
 const ProductCard = ({ product, onDelete, isDeleting }) => {
   const formatPrice = (price) => {
     const numPrice = typeof price === 'number' ? price : parseFloat(price || 0);
-    return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
+    return isNaN(numPrice) ? '00' : numPrice.toFixed(2);
   };
 
   return (
@@ -43,7 +43,7 @@ const ProductCard = ({ product, onDelete, isDeleting }) => {
         <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
         
         <div className="flex items-center justify-between">
-          <span className="text-2xl font-bold text-indigo-600">${formatPrice(product.price)}</span>
+          <span className="text-2xl font-bold text-indigo-600">Ksh {formatPrice(product.price)}</span>
           <div className="flex gap-2">
             <Link
               to={`/products/${product.id}/edit`}
