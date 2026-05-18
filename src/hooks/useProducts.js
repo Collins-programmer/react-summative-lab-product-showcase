@@ -1,82 +1,63 @@
-import { useState, useEffect, useCallback } from 'react';
-import { productService } from '../services/productService';
+import { useState, useCallback } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
 export function useProducts() {
   const [products, setProducts] = useLocalStorage('products', []);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await productService.getProducts();
-      setProducts(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [setProducts]);
-
   const createProduct = useCallback(async (productData) => {
-    setLoading(true);
-    setError(null);
     try {
-      const newProduct = await productService.createProduct(productData);
+      const newProduct = {
+        ...productData,
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        inStock: productData.inStock ?? true
+      };
+      
       setProducts(prev => [...prev, newProduct]);
       return newProduct;
     } catch (err) {
       setError(err.message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, [setProducts]);
 
   const updateProduct = useCallback(async (id, updates) => {
-    setLoading(true);
-    setError(null);
     try {
-      const updated = await productService.updateProduct(id, updates);
-      setProducts(prev => prev.map(p => p.id === id ? updated : p));
-      return updated;
+      setProducts(prev => prev.map(product => {
+        if (product.id === parseInt(id)) {
+          return { 
+            ...product, 
+            ...updates, 
+            updatedAt: new Date().toISOString() 
+          };
+        }
+        return product;
+      }));
+      return true;
     } catch (err) {
       setError(err.message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, [setProducts]);
 
   const deleteProduct = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
     try {
-      await productService.deleteProduct(id);
-      setProducts(prev => prev.filter(p => p.id !== id));
+      setProducts(prev => prev.filter(product => product.id !== parseInt(id)));
     } catch (err) {
       setError(err.message);
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, [setProducts]);
 
   const getProduct = useCallback((id) => {
-    return products.find(p => p.id === parseInt(id));
+    return products.find(product => product.id === parseInt(id));
   }, [products]);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
 
   return {
     products,
-    loading,
     error,
-    fetchProducts,
     createProduct,
     updateProduct,
     deleteProduct,
